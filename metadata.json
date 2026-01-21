@@ -1,0 +1,5 @@
+{
+  "name": "CFO Companion",
+  "description": "A secure, local-first financial planning and analysis tool designed for CFOs to manage budgets, actuals, and reporting with Hyperion mapping capabilities.",
+  "requestFramePermissions": []
+}
