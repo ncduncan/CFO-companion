@@ -93,21 +93,25 @@ async function writeJsonFile(dirHandle: FileSystemDirectoryHandle, filename: str
 export const readDataFromDirectory = async (dirHandle: FileSystemDirectoryHandle): Promise<AppData> => {
   // Read all 3 files in parallel
   const [settings, recordsData, improvementsData] = await Promise.all([
-    readJsonFile(dirHandle, FILES.SETTINGS, { 
-      accounts: INITIAL_DATA.accounts, 
-      costCenters: INITIAL_DATA.costCenters, 
-      productLines: INITIAL_DATA.productLines 
+    readJsonFile(dirHandle, FILES.SETTINGS, {
+      accounts: INITIAL_DATA.accounts,
+      costCenters: INITIAL_DATA.costCenters,
+      productLines: INITIAL_DATA.productLines,
+      plans: INITIAL_DATA.plans,
+      assumptions: INITIAL_DATA.assumptions
     }),
     readJsonFile(dirHandle, FILES.DATA, { records: INITIAL_DATA.records }),
     readJsonFile(dirHandle, FILES.IMPROVEMENTS, { opportunities: INITIAL_DATA.opportunities })
   ]);
 
   return {
-    accounts: settings.accounts,
-    costCenters: settings.costCenters,
-    productLines: settings.productLines,
-    records: recordsData.records,
-    opportunities: improvementsData.opportunities,
+    accounts: settings.accounts || INITIAL_DATA.accounts,
+    costCenters: settings.costCenters || INITIAL_DATA.costCenters,
+    productLines: settings.productLines || INITIAL_DATA.productLines,
+    plans: settings.plans || INITIAL_DATA.plans,
+    assumptions: settings.assumptions || INITIAL_DATA.assumptions,
+    records: recordsData.records || INITIAL_DATA.records,
+    opportunities: improvementsData.opportunities || INITIAL_DATA.opportunities,
     lastModified: new Date().toISOString()
   };
 };
@@ -117,13 +121,15 @@ export const writeDataToDirectory = async (dirHandle: FileSystemDirectoryHandle,
   const settingsData = {
     accounts: data.accounts,
     costCenters: data.costCenters,
-    productLines: data.productLines
+    productLines: data.productLines,
+    plans: data.plans,
+    assumptions: data.assumptions
   };
-  
+
   const recordsData = {
     records: data.records
   };
-  
+
   const improvementsData = {
     opportunities: data.opportunities
   };
