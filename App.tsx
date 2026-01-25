@@ -1,25 +1,25 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  LayoutDashboard, 
-  PieChart, 
-  BarChart3, 
-  Settings as SettingsIcon, 
-  TrendingUp, 
+import {
+  LayoutDashboard,
+  PieChart,
+  BarChart3,
+  Settings as SettingsIcon,
+  TrendingUp,
   Menu,
   X,
   Save
 } from 'lucide-react';
-import { 
-  isFileSystemSupported, 
-  getStoredDirectoryHandle, 
-  storeDirectoryHandle, 
-  readDataFromDirectory, 
-  writeDataToDirectory, 
-  verifyPermission 
+import {
+  isFileSystemSupported,
+  getStoredDirectoryHandle,
+  storeDirectoryHandle,
+  readDataFromDirectory,
+  writeDataToDirectory,
+  verifyPermission
 } from './services/storageService';
 import { AppData, INITIAL_DATA } from './types';
 import { Dashboard } from './views/Dashboard';
-import { Budgeting } from './views/Budgeting';
+import { Forecast } from './views/Forecast';
 import { Settings } from './views/Settings';
 import { Improvement } from './views/Improvement';
 import { Reporting } from './views/Reporting';
@@ -53,7 +53,7 @@ const App: React.FC = () => {
             setData(fileData);
             setStatusMsg("Loaded from local workspace.");
           } else {
-             setStatusMsg("Permission needed. Please re-select folder in Settings.");
+            setStatusMsg("Permission needed. Please re-select folder in Settings.");
           }
         }
       }
@@ -70,7 +70,7 @@ const App: React.FC = () => {
       }
     };
     window.addEventListener('resize', handleResize);
-    handleResize(); 
+    handleResize();
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
@@ -84,7 +84,7 @@ const App: React.FC = () => {
       const handle = await (window as any).showDirectoryPicker();
       setDirHandle(handle);
       await storeDirectoryHandle(handle);
-      
+
       const fileData = await readDataFromDirectory(handle);
       setData(fileData);
       setStatusMsg(`Connected to: ${handle.name}`);
@@ -102,18 +102,18 @@ const App: React.FC = () => {
         setStatusMsg("Saving...");
         const hasPerm = await verifyPermission(dirHandle, true);
         if (hasPerm) {
-           await writeDataToDirectory(dirHandle, newData);
-           setStatusMsg("Saved to disk.");
-           setTimeout(() => setStatusMsg(""), 2000);
+          await writeDataToDirectory(dirHandle, newData);
+          setStatusMsg("Saved to disk.");
+          setTimeout(() => setStatusMsg(""), 2000);
         } else {
-           setStatusMsg("Save failed: Permission denied.");
+          setStatusMsg("Save failed: Permission denied.");
         }
       } catch (err) {
         console.error("Save failed", err);
         setStatusMsg("Error saving to disk.");
       }
     } else {
-       setStatusMsg("Data in memory (Not saved to disk).");
+      setStatusMsg("Data in memory (Not saved to disk).");
     }
   }, [dirHandle]);
 
@@ -123,11 +123,10 @@ const App: React.FC = () => {
         setCurrentView(view);
         if (isMobile) setSidebarOpen(false);
       }}
-      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-        currentView === view 
-          ? 'bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-lg shadow-purple-900/50 border-l-4 border-purple-400' 
+      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${currentView === view
+          ? 'bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-lg shadow-purple-900/50 border-l-4 border-purple-400'
           : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-      }`}
+        }`}
     >
       <Icon size={20} className={currentView === view ? 'text-purple-200' : ''} />
       <span className="font-medium">{view}</span>
@@ -138,22 +137,21 @@ const App: React.FC = () => {
     <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
       {/* Mobile Sidebar Overlay */}
       {isMobile && isSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-20"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <aside 
-        className={`fixed md:relative z-30 w-64 h-full bg-slate-900 text-white flex flex-col transition-transform duration-300 ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:hidden'
-        } ${!isSidebarOpen && !isMobile ? 'md:hidden' : ''}`}
+      <aside
+        className={`fixed md:relative z-30 w-64 h-full bg-slate-900 text-white flex flex-col transition-transform duration-300 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:hidden'
+          } ${!isSidebarOpen && !isMobile ? 'md:hidden' : ''}`}
       >
         <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-md flex items-center justify-center shadow-lg shadow-purple-500/30">
-              <BarChart3 className="text-white" size={20}/>
+              <BarChart3 className="text-white" size={20} />
             </div>
             <h1 className="text-xl font-bold tracking-tight text-white">CFO Companion</h1>
           </div>
@@ -176,8 +174,8 @@ const App: React.FC = () => {
 
         <div className="p-4 border-t border-slate-800 text-xs text-slate-500 bg-slate-950">
           <div className="flex items-center gap-2 mb-1">
-             <div className={`w-2 h-2 rounded-full ${dirHandle ? 'bg-purple-500' : 'bg-amber-500'}`} />
-             <span>{dirHandle ? 'Local Mode: Active' : 'Memory Only'}</span>
+            <div className={`w-2 h-2 rounded-full ${dirHandle ? 'bg-purple-500' : 'bg-amber-500'}`} />
+            <span>{dirHandle ? 'Local Mode: Active' : 'Memory Only'}</span>
           </div>
           <p>v2.4.0 Ind. SaaS</p>
         </div>
@@ -189,7 +187,7 @@ const App: React.FC = () => {
         <header className="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 shadow-sm z-10">
           <div className="flex items-center gap-4">
             {!isSidebarOpen && (
-              <button 
+              <button
                 onClick={() => setSidebarOpen(true)}
                 className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
               >
@@ -199,34 +197,34 @@ const App: React.FC = () => {
             <h2 className="text-xl font-semibold text-slate-800">{currentView}</h2>
           </div>
           <div className="flex items-center gap-4">
-             <div className="text-sm text-right hidden sm:block">
-               <p className="font-medium text-slate-900">Finance Workspace</p>
-               <p className={`text-xs ${statusMsg.includes('failed') || statusMsg.includes('needed') ? 'text-red-500' : 'text-purple-600'}`}>
-                 {statusMsg || (dirHandle ? `Connected: ${dirHandle.name}` : "Not Saved to Disk")}
-               </p>
-             </div>
-             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 flex items-center justify-center text-purple-700 font-bold shadow-sm">
-               CF
-             </div>
+            <div className="text-sm text-right hidden sm:block">
+              <p className="font-medium text-slate-900">Finance Workspace</p>
+              <p className={`text-xs ${statusMsg.includes('failed') || statusMsg.includes('needed') ? 'text-red-500' : 'text-purple-600'}`}>
+                {statusMsg || (dirHandle ? `Connected: ${dirHandle.name}` : "Not Saved to Disk")}
+              </p>
+            </div>
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 flex items-center justify-center text-purple-700 font-bold shadow-sm">
+              CF
+            </div>
           </div>
         </header>
 
         {/* View Content */}
         <div className="flex-1 overflow-auto p-4 md:p-8">
-           <div className="max-w-7xl mx-auto">
-             {currentView === View.DASHBOARD && <Dashboard data={data} />}
-             {currentView === View.BUDGET && <Budgeting data={data} onUpdate={handleDataUpdate} />}
-             {currentView === View.REPORTING && <Reporting data={data} />}
-             {currentView === View.IMPROVEMENT && <Improvement data={data} onUpdate={handleDataUpdate} />}
-             {currentView === View.SETTINGS && (
-                <Settings 
-                  data={data} 
-                  onUpdate={handleDataUpdate} 
-                  onSelectFolder={handleSelectFolder}
-                  folderName={dirHandle ? dirHandle.name : null}
-                />
-             )}
-           </div>
+          <div className="max-w-7xl mx-auto">
+            {currentView === View.DASHBOARD && <Dashboard data={data} />}
+            {currentView === View.BUDGET && <Forecast data={data} onUpdate={handleDataUpdate} />}
+            {currentView === View.REPORTING && <Reporting data={data} />}
+            {currentView === View.IMPROVEMENT && <Improvement data={data} onUpdate={handleDataUpdate} />}
+            {currentView === View.SETTINGS && (
+              <Settings
+                data={data}
+                onUpdate={handleDataUpdate}
+                onSelectFolder={handleSelectFolder}
+                folderName={dirHandle ? dirHandle.name : null}
+              />
+            )}
+          </div>
         </div>
       </main>
     </div>
