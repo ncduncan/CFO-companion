@@ -263,55 +263,11 @@ const generateDummyRecords = (productCodes: string[], ccCodes: string[], default
   return records;
 };
 
-// Initial Data Definitions
-export const PROD_LINES: DimensionMapping[] = [
-  { code: 'PL_IOT', name: 'Industrial IoT Platform', hyperionMap: 'PROD_IOT' },
-  { code: 'PL_ANL', name: 'Predictive Analytics', hyperionMap: 'PROD_PREDICT' },
-  { code: 'PL_SERV', name: 'Implementation Services', hyperionMap: 'PROD_SERV' },
-  { code: 'PL_HW', name: 'Edge Hardware', hyperionMap: 'PROD_HW' },
-  { code: 'PL_LEG', name: 'Legacy Systems', hyperionMap: 'PROD_LEG' }
-];
-
-export const COST_CENTERS: DimensionMapping[] = [
-  { code: '100', name: 'Research & Development', hyperionMap: 'CC_RD' },
-  { code: '110', name: 'IT & Infrastructure', hyperionMap: 'CC_IT' },
-  { code: '200', name: 'Sales & Marketing', hyperionMap: 'CC_SM' },
-  { code: '300', name: 'Professional Services', hyperionMap: 'CC_DEL' },
-  { code: '800', name: 'Human Resources', hyperionMap: 'CC_HR' },
-  { code: '900', name: 'General & Admin', hyperionMap: 'CC_CORP' }
-];
-
-export const DEFAULT_PLAN_ID = 'plan-2025-base';
-
 export const INITIAL_DATA: AppData = {
-  accounts: [
-    // Revenue
-    { code: 'REV_SUB', name: 'Subscription Revenue', hyperionMap: '40000', category: 'Revenue' },
-    { code: 'REV_SERV', name: 'Services Revenue', hyperionMap: '41000', category: 'Revenue' },
-    { code: 'REV_HW', name: 'Hardware Revenue', hyperionMap: '42000', category: 'Revenue' },
-    // COGS
-    { code: 'COGS_HOST', name: 'Hosting & Infrastructure', hyperionMap: '50000', category: 'COGS' },
-    { code: 'COGS_SERV', name: 'Services COS', hyperionMap: '51000', category: 'COGS' },
-    { code: 'COGS_HW', name: 'Hardware Costs', hyperionMap: '52000', category: 'COGS' },
-    // OpEx
-    { code: 'EXP_GEN_PPL', name: 'Salaries & Wages', hyperionMap: '60000', category: 'OpEx' },
-    { code: 'EXP_MKT', name: 'Marketing Programs', hyperionMap: '61000', category: 'OpEx' },
-    { code: 'EXP_OFFICE', name: 'Office & General', hyperionMap: '62000', category: 'OpEx' },
-    { code: 'EXP_SW', name: 'Software Subscriptions', hyperionMap: '63000', category: 'OpEx' },
-    { code: 'EXP_TRAVEL', name: 'Travel & Entertainment', hyperionMap: '64000', category: 'OpEx' },
-    // Depreciation 
-    { code: 'EXP_DEP', name: 'Depreciation & Amortization', hyperionMap: '69000', category: 'Depreciation' },
-    // Other Income / Expense 
-    { code: 'INC_OTHER', name: 'Other Income / (Expense)', hyperionMap: '70000', category: 'Other Income' },
-    // Taxes
-    { code: 'EXP_TAX', name: 'Income Taxes', hyperionMap: '80000', category: 'Taxes' },
-    // FCF
-    { code: 'CF_CAPEX', name: 'Capital Expenditures', hyperionMap: '90000', category: 'Cash Flow Items' },
-    { code: 'CF_WC', name: 'Change in Working Capital', hyperionMap: '91000', category: 'Cash Flow Items' }
-  ],
-  costCenters: COST_CENTERS,
-  productLines: PROD_LINES,
-  records: [], // EMPTY BY DEFAULT
+  accounts: [],
+  costCenters: [],
+  productLines: [],
+  records: [],
   opportunities: [],
   plans: [],
   assumptions: [],

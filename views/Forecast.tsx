@@ -240,8 +240,8 @@ export const Forecast: React.FC<ForecastProps> = ({ data, onUpdate }) => {
                       key={account.code}
                       onClick={() => setSelectedAccountCode(account.code)}
                       className={`w-full text-left px-3 py-2 rounded-md flex items-center justify-between group transition-colors ${selectedAccountCode === account.code
-                          ? 'bg-purple-50 text-purple-700 font-medium'
-                          : 'hover:bg-slate-50 text-slate-600'
+                        ? 'bg-purple-50 text-purple-700 font-medium'
+                        : 'hover:bg-slate-50 text-slate-600'
                         }`}
                     >
                       <span className="truncate">{account.name}</span>
@@ -279,7 +279,15 @@ export const Forecast: React.FC<ForecastProps> = ({ data, onUpdate }) => {
                   {/* Placeholder for View Options (Monthly/Quarterly) */}
                 </div>
               </div>
-              <div className="flex-1 min-h-0">
+              <div className="flex-1 min-h-0 relative">
+                {chartData.reduce((sum, item) => sum + (item.Actual || 0), 0) === 0 && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-10 backdrop-blur-sm">
+                    <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-md shadow-sm flex items-center gap-2">
+                      <AlertCircle size={20} />
+                      <p className="text-sm font-medium">No historical data available for this account.</p>
+                    </div>
+                  </div>
+                )}
                 <ResponsiveContainer width="100%" height="100%">
                   <ComposedChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -305,8 +313,8 @@ export const Forecast: React.FC<ForecastProps> = ({ data, onUpdate }) => {
                     key={m}
                     onClick={() => setDraftMethod(m)}
                     className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${draftMethod === m
-                        ? 'border-purple-600 text-purple-700 bg-purple-50/50'
-                        : 'border-transparent text-slate-600 hover:text-slate-800 hover:bg-slate-50'
+                      ? 'border-purple-600 text-purple-700 bg-purple-50/50'
+                      : 'border-transparent text-slate-600 hover:text-slate-800 hover:bg-slate-50'
                       }`}
                   >
                     {m.replace(/([A-Z])/g, ' $1').trim()}

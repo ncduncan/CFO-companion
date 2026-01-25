@@ -74,30 +74,9 @@ const App: React.FC = () => {
 
     // Listen for Demo Data Generation
     const handleDemoGen = () => {
-      // We can access the helper from types if we import it, or just reset to INITIAL_DATA (if INITIAL_DATA has content).
-      // But we want to EMPTY INITIAL_DATA by default.
-      // So we need to explicitly import the generator.
-      // See 'types.ts' changes below.
-      import('./types').then(({ generateDummyRecords, PROD_LINES, COST_CENTERS, DEFAULT_PLAN_ID }) => {
-        const records = generateDummyRecords(PROD_LINES.map(p => p.code), COST_CENTERS.map(c => c.code), DEFAULT_PLAN_ID);
-        const demoPlans = [{
-          id: DEFAULT_PLAN_ID,
-          name: '2025 Base Budget',
-          startDate: '2025-01',
-          endDate: '2025-12',
-          status: 'Active' as const,
-          created: new Date().toISOString()
-        }];
-
-        handleDataUpdate({
-          ...data, // Accessing 'data' in closure might be stale if useEffect dependency not set. 
-          // Better to set state functional update or use ref. 
-          // However, for this simple event, let's just force a reload or update.
-          // Actually, accessing 'data' inside this useEffect is safe if we included it in dep array? No.
-          // Let's rely on functional state update if possible, but 'handleDataUpdate' is async calling storage.
-
-          // SIMPLER APPROACH: Pass a "onSearch" or "onAction" prop to Settings, and let App define the handler.
-        } as any);
+      import('./services/dataFactory').then(({ generateStandardSaaSData }) => {
+        const newData = generateStandardSaaSData();
+        handleDataUpdate(newData);
       });
     };
     window.addEventListener('GENERATE_DEMO_DATA', handleDemoGen);
@@ -106,30 +85,15 @@ const App: React.FC = () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('GENERATE_DEMO_DATA', handleDemoGen);
     };
-  }, []); // Re-run if data changes? No, empty dependency means run once. State access is stale.
+  }, []);
 
-  // Better approach: Pass a handler to Settings. 
   const generateDemoData = useCallback(async () => {
-    const { generateDummyRecords, PROD_LINES, COST_CENTERS, DEFAULT_PLAN_ID } = await import('./types');
-    const records = generateDummyRecords(PROD_LINES.map(p => p.code), COST_CENTERS.map(c => c.code), DEFAULT_PLAN_ID);
-    const demoPlans = [{
-      id: DEFAULT_PLAN_ID,
-      name: '2025 Base Budget',
-      startDate: '2025-01',
-      endDate: '2025-12',
-      status: 'Active' as const,
-      created: new Date().toISOString()
-    }];
-
-    const newData = {
-      ...data,
-      records,
-      plans: data.plans.length > 0 ? data.plans : demoPlans
-    };
+    const { generateStandardSaaSData } = await import('./services/dataFactory');
+    const newData = generateStandardSaaSData();
     setData(newData);
     if (dirHandle) writeDataToDirectory(dirHandle, newData);
     setStatusMsg("Demo Data Generated.");
-  }, [data, dirHandle]);
+  }, [dirHandle]);
 
   // Handle Folder Selection
   const handleSelectFolder = async () => {
