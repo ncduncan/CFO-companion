@@ -9,9 +9,10 @@ interface SettingsProps {
   onUpdate: (newData: AppData) => void;
   onSelectFolder: () => void;
   folderName: string | null;
+  onGenerateDemoData?: () => void;
 }
 
-export const Settings: React.FC<SettingsProps> = ({ data, onUpdate, onSelectFolder, folderName }) => {
+export const Settings: React.FC<SettingsProps> = ({ data, onUpdate, onSelectFolder, folderName, onGenerateDemoData }) => {
   const [activeTab, setActiveTab] = useState<'mappings' | 'data'>('mappings');
 
   const updateMapping = (
@@ -391,19 +392,12 @@ export const Settings: React.FC<SettingsProps> = ({ data, onUpdate, onSelectFold
                   <button
                     onClick={() => {
                       if (confirm("This will overwrite existing records. Continue?")) {
-                        // We need to import the generator or move it to a helper. 
-                        // For now, we'll trigger a reload with a 'demo=true' flag or just call the function if exposed.
-                        // Since generateDummyRecords is in types.ts but not exported as a standalone easily usable tool without props,
-                        // We will dispatch a new event or rely on parent. 
-                        // Actually, let's just do it directly if we modify types.ts to export it properly.
-                        // But wait, Settings receives `onUpdate`. We need the generator function available here.
-                        // Let's assume we'll fix types.ts to export `generateDummyRecords` and use it here.
-                        const { generateDummyRecords, INITIAL_DATA } = require('../types');
-                        // Note: require might not work with Vite/ESM standard. Better to fully import at top.
-                        // I will add the import in a separate step or just re-implement logic? 
-                        // Better: The user asked to use the python script logic. I implemented generateDummyRecords in TS earlier.
-                        // I will assume I can import it.
-                        window.dispatchEvent(new CustomEvent('GENERATE_DEMO_DATA'));
+                        if (onGenerateDemoData) {
+                          onGenerateDemoData();
+                        } else {
+                          // Fallback for safety
+                          window.dispatchEvent(new CustomEvent('GENERATE_DEMO_DATA'));
+                        }
                       }
                     }}
                     className="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded text-sm font-medium shadow-sm transition-colors"
