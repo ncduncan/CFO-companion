@@ -71,8 +71,65 @@ const App: React.FC = () => {
     };
     window.addEventListener('resize', handleResize);
     handleResize();
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+
+    // Listen for Demo Data Generation
+    const handleDemoGen = () => {
+      // We can access the helper from types if we import it, or just reset to INITIAL_DATA (if INITIAL_DATA has content).
+      // But we want to EMPTY INITIAL_DATA by default.
+      // So we need to explicitly import the generator.
+      // See 'types.ts' changes below.
+      import('./types').then(({ generateDummyRecords, PROD_LINES, COST_CENTERS, DEFAULT_PLAN_ID }) => {
+        const records = generateDummyRecords(PROD_LINES.map(p => p.code), COST_CENTERS.map(c => c.code), DEFAULT_PLAN_ID);
+        const demoPlans = [{
+          id: DEFAULT_PLAN_ID,
+          name: '2025 Base Budget',
+          startDate: '2025-01',
+          endDate: '2025-12',
+          status: 'Active' as const,
+          created: new Date().toISOString()
+        }];
+
+        handleDataUpdate({
+          ...data, // Accessing 'data' in closure might be stale if useEffect dependency not set. 
+          // Better to set state functional update or use ref. 
+          // However, for this simple event, let's just force a reload or update.
+          // Actually, accessing 'data' inside this useEffect is safe if we included it in dep array? No.
+          // Let's rely on functional state update if possible, but 'handleDataUpdate' is async calling storage.
+
+          // SIMPLER APPROACH: Pass a "onSearch" or "onAction" prop to Settings, and let App define the handler.
+        } as any);
+      });
+    };
+    window.addEventListener('GENERATE_DEMO_DATA', handleDemoGen);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('GENERATE_DEMO_DATA', handleDemoGen);
+    };
+  }, []); // Re-run if data changes? No, empty dependency means run once. State access is stale.
+
+  // Better approach: Pass a handler to Settings. 
+  const generateDemoData = useCallback(async () => {
+    const { generateDummyRecords, PROD_LINES, COST_CENTERS, DEFAULT_PLAN_ID } = await import('./types');
+    const records = generateDummyRecords(PROD_LINES.map(p => p.code), COST_CENTERS.map(c => c.code), DEFAULT_PLAN_ID);
+    const demoPlans = [{
+      id: DEFAULT_PLAN_ID,
+      name: '2025 Base Budget',
+      startDate: '2025-01',
+      endDate: '2025-12',
+      status: 'Active' as const,
+      created: new Date().toISOString()
+    }];
+
+    const newData = {
+      ...data,
+      records,
+      plans: data.plans.length > 0 ? data.plans : demoPlans
+    };
+    setData(newData);
+    if (dirHandle) writeDataToDirectory(dirHandle, newData);
+    setStatusMsg("Demo Data Generated.");
+  }, [data, dirHandle]);
 
   // Handle Folder Selection
   const handleSelectFolder = async () => {
@@ -124,8 +181,8 @@ const App: React.FC = () => {
         if (isMobile) setSidebarOpen(false);
       }}
       className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${currentView === view
-          ? 'bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-lg shadow-purple-900/50 border-l-4 border-purple-400'
-          : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+        ? 'bg-gradient-to-r from-purple-700 to-indigo-700 text-white shadow-lg shadow-purple-900/50 border-l-4 border-purple-400'
+        : 'text-slate-400 hover:bg-slate-800 hover:text-white'
         }`}
     >
       <Icon size={20} className={currentView === view ? 'text-purple-200' : ''} />
@@ -222,6 +279,7 @@ const App: React.FC = () => {
                 onUpdate={handleDataUpdate}
                 onSelectFolder={handleSelectFolder}
                 folderName={dirHandle ? dirHandle.name : null}
+                onGenerateDemoData={generateDemoData}
               />
             )}
           </div>

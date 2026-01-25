@@ -264,7 +264,7 @@ const generateDummyRecords = (productCodes: string[], ccCodes: string[], default
 };
 
 // Initial Data Definitions
-const PROD_LINES: DimensionMapping[] = [
+export const PROD_LINES: DimensionMapping[] = [
   { code: 'PL_IOT', name: 'Industrial IoT Platform', hyperionMap: 'PROD_IOT' },
   { code: 'PL_ANL', name: 'Predictive Analytics', hyperionMap: 'PROD_PREDICT' },
   { code: 'PL_SERV', name: 'Implementation Services', hyperionMap: 'PROD_SERV' },
@@ -272,7 +272,7 @@ const PROD_LINES: DimensionMapping[] = [
   { code: 'PL_LEG', name: 'Legacy Systems', hyperionMap: 'PROD_LEG' }
 ];
 
-const COST_CENTERS: DimensionMapping[] = [
+export const COST_CENTERS: DimensionMapping[] = [
   { code: '100', name: 'Research & Development', hyperionMap: 'CC_RD' },
   { code: '110', name: 'IT & Infrastructure', hyperionMap: 'CC_IT' },
   { code: '200', name: 'Sales & Marketing', hyperionMap: 'CC_SM' },
@@ -281,7 +281,7 @@ const COST_CENTERS: DimensionMapping[] = [
   { code: '900', name: 'General & Admin', hyperionMap: 'CC_CORP' }
 ];
 
-const DEFAULT_PLAN_ID = 'plan-2025-base';
+export const DEFAULT_PLAN_ID = 'plan-2025-base';
 
 export const INITIAL_DATA: AppData = {
   accounts: [
@@ -311,32 +311,9 @@ export const INITIAL_DATA: AppData = {
   ],
   costCenters: COST_CENTERS,
   productLines: PROD_LINES,
-  records: generateDummyRecords(PROD_LINES.map(p => p.code), COST_CENTERS.map(c => c.code), DEFAULT_PLAN_ID),
-  opportunities: [
-    {
-      id: 'opp-1',
-      title: 'Cloud Cost Optimization',
-      description: 'Migrate non-production workloads to spot instances.',
-      estimatedImpact: 120000,
-      status: 'In Progress',
-      owner: 'CTO',
-      includedInBudget: false,
-      estimatedImpactTiming: 'Start Q3 2024',
-      actionDueDate: '2024-06-30',
-      impactAccountCode: 'COGS_HOST',
-      impactProductLineCode: 'PL_IOT'
-    }
-  ],
-  plans: [
-    {
-      id: DEFAULT_PLAN_ID,
-      name: '2025 Base Budget',
-      startDate: '2025-01',
-      endDate: '2025-12',
-      status: 'Active',
-      created: new Date().toISOString()
-    }
-  ],
+  records: [], // EMPTY BY DEFAULT
+  opportunities: [],
+  plans: [],
   assumptions: [],
   lastModified: new Date().toISOString()
 };
