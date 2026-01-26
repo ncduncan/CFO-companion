@@ -1,6 +1,6 @@
 import { AppData, DimensionMapping, FinancialRecord, RecordType, Plan } from '../types';
 
-const PROD_LINES: DimensionMapping[] = [
+export const PROD_LINES: DimensionMapping[] = [
     { code: 'PL_IOT', name: 'Industrial IoT Platform', hyperionMap: 'PROD_IOT' },
     { code: 'PL_ANL', name: 'Predictive Analytics', hyperionMap: 'PROD_PREDICT' },
     { code: 'PL_SERV', name: 'Implementation Services', hyperionMap: 'PROD_SERV' },
@@ -8,7 +8,7 @@ const PROD_LINES: DimensionMapping[] = [
     { code: 'PL_LEG', name: 'Legacy Systems', hyperionMap: 'PROD_LEG' }
 ];
 
-const COST_CENTERS: DimensionMapping[] = [
+export const COST_CENTERS: DimensionMapping[] = [
     { code: '100', name: 'Research & Development', hyperionMap: 'CC_RD' },
     { code: '110', name: 'IT & Infrastructure', hyperionMap: 'CC_IT' },
     { code: '200', name: 'Sales & Marketing', hyperionMap: 'CC_SM' },
@@ -17,7 +17,7 @@ const COST_CENTERS: DimensionMapping[] = [
     { code: '900', name: 'General & Admin', hyperionMap: 'CC_CORP' }
 ];
 
-const ACCOUNTS: DimensionMapping[] = [
+export const ACCOUNTS: DimensionMapping[] = [
     // Revenue
     { code: 'REV_SUB', name: 'Subscription Revenue', hyperionMap: '40000', category: 'Revenue' },
     { code: 'REV_SERV', name: 'Services Revenue', hyperionMap: '41000', category: 'Revenue' },
@@ -45,58 +45,170 @@ const ACCOUNTS: DimensionMapping[] = [
 
 const DEFAULT_PLAN_ID = 'plan-2025-base';
 
-const generateRecords = (): FinancialRecord[] => {
+// Helper to create dummy records
+const generateDummyRecords = (productCodes: string[], ccCodes: string[], defaultPlanId: string): FinancialRecord[] => {
     const records: FinancialRecord[] = [];
     const years = [2023, 2024, 2025];
-
-    // Helper to get base value for an account type
-    const getBaseValue = (category: string | undefined): number => {
-        switch (category) {
-            case 'Revenue': return 80000;
-            case 'COGS': return 25000;
-            case 'OpEx': return 15000;
-            case 'Depreciation': return 5000;
-            case 'Taxes': return 10000;
-            case 'Cash Flow Items': return 20000;
-            default: return 5000;
-        }
-    };
 
     years.forEach(year => {
         for (let m = 1; m <= 12; m++) {
             const period = `${year}-${m.toString().padStart(2, '0')}`;
+
+            // Base Seasonality Factor
             const seasonality = 1 + (Math.sin(m) * 0.15);
-            const growth = 1 + ((year - 2023) * 0.12); // 12% YoY growth
-            const variance = () => 0.95 + Math.random() * 0.1; // +/- 5% variance
+            // Growth Factor (Year over Year)
+            const growth = 1 + ((year - 2023) * 0.12);
 
-            ACCOUNTS.forEach(account => {
-                const baseVal = getBaseValue(account.category) * seasonality * growth;
+            // Random monthly variance base
+            const variance = () => 0.95 + Math.random() * 0.1;
 
-                // Generate Budget Record
+            const baseAmount = 1000 * seasonality * growth;
+
+            // --- Revenue & COGS per Product ---
+            productCodes.forEach(pl => {
+                let mixFactor = 1;
+                if (pl === 'PL_IOT') mixFactor = 1.5;
+                if (pl === 'PL_LEG') mixFactor = 0.6; // Declining legacy product
+
+                // Revenue
                 records.push({
                     id: crypto.randomUUID(),
-                    planId: DEFAULT_PLAN_ID,
+                    planId: defaultPlanId,
                     period,
                     type: RecordType.BUDGET,
-                    accountCode: account.code,
-                    costCenterCode: 'GEN_CC', // Simplified
-                    productLineCode: 'GEN_PL', // Simplified
-                    amount: Math.round(baseVal)
+                    accountCode: 'REV_SUB',
+                    costCenterCode: '200', // Sales maps to Sales CC usually for booking, or dummy
+                    productLineCode: pl,
+                    amount: baseAmount * 80 * mixFactor
                 });
 
-                // Generate Actual Record (Up to Apr 2025)
+                // Actuals
                 if (year < 2025 || (year === 2025 && m <= 4)) {
                     records.push({
                         id: crypto.randomUUID(),
+                        // No planId for Actuals
                         period,
                         type: RecordType.ACTUAL,
-                        accountCode: account.code,
-                        costCenterCode: 'GEN_CC',
-                        productLineCode: 'GEN_PL',
-                        amount: Math.round(baseVal * variance())
+                        accountCode: 'REV_SUB',
+                        costCenterCode: '200',
+                        productLineCode: pl,
+                        amount: (baseAmount * 80 * mixFactor) * variance()
+                    });
+                }
+
+                // COGS
+                records.push({
+                    id: crypto.randomUUID(),
+                    planId: defaultPlanId,
+                    period,
+                    type: RecordType.BUDGET,
+                    accountCode: 'COGS_HOST',
+                    costCenterCode: '100',
+                    productLineCode: pl,
+                    amount: baseAmount * 25 * mixFactor
+                });
+
+                if (year < 2025 || (year === 2025 && m <= 4)) {
+                    records.push({
+                        id: crypto.randomUUID(),
+                        // No planId for Actuals
+                        period,
+                        type: RecordType.ACTUAL,
+                        accountCode: 'COGS_HOST',
+                        costCenterCode: '100',
+                        productLineCode: pl,
+                        amount: (baseAmount * 25 * mixFactor) * variance()
                     });
                 }
             });
+
+            // --- OpEx per Cost Center ---
+            ccCodes.forEach(cc => {
+                let sizeFactor = 1;
+                if (cc === '900') sizeFactor = 0.5; // Corp is smaller than R&D/Sales headcount usually
+
+                // Salaries
+                records.push({
+                    id: crypto.randomUUID(),
+                    planId: defaultPlanId,
+                    period,
+                    type: RecordType.BUDGET,
+                    accountCode: 'EXP_GEN_PPL',
+                    costCenterCode: cc,
+                    productLineCode: '',
+                    amount: baseAmount * 20 * sizeFactor
+                });
+
+                // Deprecitation (Allocated)
+                records.push({
+                    id: crypto.randomUUID(),
+                    planId: defaultPlanId,
+                    period,
+                    type: RecordType.BUDGET,
+                    accountCode: 'EXP_DEP',
+                    costCenterCode: cc,
+                    productLineCode: '',
+                    amount: baseAmount * 4 * sizeFactor
+                });
+
+                // Actuals
+                if (year < 2025 || (year === 2025 && m <= 4)) {
+                    records.push({
+                        id: crypto.randomUUID(),
+                        // No planId for Actuals
+                        period,
+                        type: RecordType.ACTUAL,
+                        accountCode: 'EXP_GEN_PPL',
+                        costCenterCode: cc,
+                        productLineCode: '',
+                        amount: (baseAmount * 20 * sizeFactor) * variance()
+                    });
+                    records.push({
+                        id: crypto.randomUUID(),
+                        // No planId for Actuals
+                        period,
+                        type: RecordType.ACTUAL,
+                        accountCode: 'EXP_DEP',
+                        costCenterCode: cc,
+                        productLineCode: '',
+                        amount: (baseAmount * 4 * sizeFactor) // Fixed mostly
+                    });
+                }
+            });
+
+            // --- Entity Level Items (Taxes, Other, CapEx) ---
+            ['INC_OTHER', 'EXP_TAX', 'CF_CAPEX', 'CF_WC'].forEach(acc => {
+                let factor = 0;
+                if (acc === 'INC_OTHER') factor = 2;
+                if (acc === 'EXP_TAX') factor = 12;
+                if (acc === 'CF_CAPEX') factor = 8;
+                if (acc === 'CF_WC') factor = -4;
+
+                records.push({
+                    id: crypto.randomUUID(),
+                    planId: defaultPlanId,
+                    period,
+                    type: RecordType.BUDGET,
+                    accountCode: acc,
+                    costCenterCode: '900',
+                    productLineCode: '',
+                    amount: baseAmount * factor
+                });
+
+                if (year < 2025 || (year === 2025 && m <= 4)) {
+                    records.push({
+                        id: crypto.randomUUID(),
+                        // No planId for Actuals
+                        period,
+                        type: RecordType.ACTUAL,
+                        accountCode: acc,
+                        costCenterCode: '900',
+                        productLineCode: '',
+                        amount: (baseAmount * factor) * variance()
+                    });
+                }
+            });
+
         }
     });
 
@@ -104,11 +216,15 @@ const generateRecords = (): FinancialRecord[] => {
 };
 
 export const generateStandardSaaSData = (): AppData => {
+    // Collect all codes for generation
+    const productCodes = PROD_LINES.map(p => p.code);
+    const ccCodes = COST_CENTERS.map(c => c.code);
+
     return {
         accounts: ACCOUNTS,
         costCenters: COST_CENTERS,
         productLines: PROD_LINES,
-        records: generateRecords(),
+        records: generateDummyRecords(productCodes, ccCodes, DEFAULT_PLAN_ID),
         opportunities: [
             {
                 id: 'opp-1',
