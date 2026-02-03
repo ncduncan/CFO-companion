@@ -247,6 +247,9 @@ export const generateStandardSaaSData = (): AppData => {
                 startDate: '2025-01',
                 endDate: '2025-12',
                 status: 'Active',
+                type: 'Base',
+                isLocked: false,
+                isWorkingPlan: true,
                 created: new Date().toISOString()
             }
         ],

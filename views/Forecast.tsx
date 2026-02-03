@@ -22,8 +22,14 @@ import {
   Hash,
   Save,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Lock,
+  Unlock,
+  Copy,
+  FileDown,
+  Flag
 } from 'lucide-react';
+import { exportPlanToHyperion } from '../services/excelService';
 import {
   ComposedChart,
   Line,
@@ -106,24 +112,65 @@ export const Forecast: React.FC<ForecastProps> = ({ data, onUpdate }) => {
   // --- Handlers ---
 
   const handleCreatePlan = () => {
-    const name = prompt("Enter Plan Name (e.g., '2026 Base Case'):");
+    // Basic Prompt for now
+    // Ideally we want a Modal to choose "Clone Existing" vs "New Blank"
+    // For MVP, let's keep it simple: automatically clone if user wants?
+    // Let's ask via standard confirm/prompt flow until we build modal.
+
+    const name = prompt("Enter Plan Name (e.g., 'Q1 Interim Scenario'):");
     if (!name) return;
+
+    const cloneSourceId = activePlanId && confirm("Do you want to start by cloning the current plan's assumptions?") ? activePlanId : null;
+
     const yearStr = prompt("Enter Plan Year (YYYY):", new Date().getFullYear().toString());
     const year = parseInt(yearStr || new Date().getFullYear().toString());
 
+    const newPlanId = crypto.randomUUID();
+
     const newPlan: Plan = {
-      id: crypto.randomUUID(),
+      id: newPlanId,
       name,
-      description: 'User created plan',
+      description: cloneSourceId ? `Cloned from ${activePlan?.name}` : 'User created plan',
       startDate: `${year}-01`,
       endDate: `${year}-12`,
-      status: 'Draft',
+      status: 'Active', // Default to Active
+      type: 'Scenario',
+      parentPlanId: cloneSourceId || undefined,
+      isLocked: false,
+      isWorkingPlan: false,
       created: new Date().toISOString()
     };
 
+    let newAssumptions = [...data.assumptions];
+    let newRecords = [...data.records];
+
+    if (cloneSourceId) {
+      // Clone Assumptions
+      const sourceAssumptions = data.assumptions.filter(a => a.planId === cloneSourceId);
+      const clonedAssumptions = sourceAssumptions.map(a => ({
+        ...a,
+        id: crypto.randomUUID(),
+        planId: newPlanId,
+        lastUpdated: new Date().toISOString()
+      }));
+      newAssumptions = [...newAssumptions, ...clonedAssumptions];
+
+      // Clone Records (Simulate generation or copy)
+      // Copying is faster/safer than re-generating if input data hasn't changed.
+      const sourceRecords = data.records.filter(r => r.planId === cloneSourceId);
+      const clonedRecords = sourceRecords.map(r => ({
+        ...r,
+        id: crypto.randomUUID(),
+        planId: newPlanId
+      }));
+      newRecords = [...newRecords, ...clonedRecords];
+    }
+
     onUpdate({
       ...data,
-      plans: [...data.plans, newPlan]
+      plans: [...data.plans, newPlan],
+      assumptions: newAssumptions,
+      records: newRecords
     });
     setActivePlanId(newPlan.id);
   };
@@ -330,13 +377,58 @@ export const Forecast: React.FC<ForecastProps> = ({ data, onUpdate }) => {
             </button>
           </div>
 
-          <div className="mt-auto border-t pt-4">
-            <div className="text-xs text-slate-400 mb-2">Completion Status</div>
-            <div className="w-full bg-slate-100 rounded-full h-2">
-              <div className="bg-purple-500 h-2 rounded-full transition-all duration-500" style={{ width: `${completionStatus}%` }}></div>
+          <div className="mt-auto border-t pt-4 space-y-4">
+
+            {/* Plan Actions */}
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2">
+                <button
+                  title={activePlan?.isLocked ? "Unlock Plan" : "Lock Plan"}
+                  onClick={() => {
+                    if (!activePlan) return;
+                    const updatedPlans = data.plans.map(p => p.id === activePlan.id ? { ...p, isLocked: !p.isLocked } : p);
+                    onUpdate({ ...data, plans: updatedPlans });
+                  }}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm cursor-pointer transition-colors ${activePlan?.isLocked ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                >
+                  {activePlan?.isLocked ? <Lock size={14} /> : <Unlock size={14} />}
+                  {activePlan?.isLocked ? "Locked" : "Unlocked"}
+                </button>
+
+                <button
+                  title="Set as Default Working Plan"
+                  onClick={() => {
+                    if (!activePlan) return;
+                    const updatedPlans = data.plans.map(p => ({ ...p, isWorkingPlan: p.id === activePlan.id }));
+                    onUpdate({ ...data, plans: updatedPlans });
+                  }}
+                  className={`flex items-center justify-center px-3 rounded-md transition-colors ${activePlan?.isWorkingPlan ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400 hover:text-emerald-600'}`}
+                >
+                  <Flag size={16} fill={activePlan?.isWorkingPlan ? "currentColor" : "none"} />
+                </button>
+              </div>
+
+              <button
+                onClick={() => {
+                  if (!activePlan) return;
+                  // Filter records for this plan
+                  const planRecords = data.records.filter(r => r.planId === activePlan.id);
+                  exportPlanToHyperion(planRecords, data.accounts, data.costCenters, data.productLines);
+                }}
+                className="flex items-center justify-center gap-2 bg-white border border-slate-300 text-slate-700 py-2 rounded-md text-sm hover:bg-slate-50 transition-colors"
+              >
+                <FileDown size={14} /> Export to Hyperion
+              </button>
             </div>
-            <div className="text-right text-[10px] text-slate-400 mt-1">{completionStatus}% Forecasted</div>
-            {/* Progress logic to be implemented later */}
+
+
+            <div>
+              <div className="text-xs text-slate-400 mb-2">Completion Status</div>
+              <div className="w-full bg-slate-100 rounded-full h-2">
+                <div className="bg-purple-500 h-2 rounded-full transition-all duration-500" style={{ width: `${completionStatus}%` }}></div>
+              </div>
+              <div className="text-right text-[10px] text-slate-400 mt-1">{completionStatus}% Forecasted</div>
+            </div>
           </div>
         </Card>
       </div>
@@ -447,6 +539,7 @@ export const Forecast: React.FC<ForecastProps> = ({ data, onUpdate }) => {
                   className={`px-4 py-3 text-sm font-medium transition-colors ${workbenchTab === 'editor' ? 'text-purple-700 border-b-2 border-purple-600 bg-white' : 'text-slate-500 hover:text-slate-700'}`}
                 >
                   Forecast Editor
+                  {activePlan?.isLocked && <span className="ml-2 text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded border">Read Only</span>}
                 </button>
                 <button
                   onClick={() => setWorkbenchTab('list')}
@@ -558,10 +651,14 @@ export const Forecast: React.FC<ForecastProps> = ({ data, onUpdate }) => {
                       <div className="pt-4 border-t flex justify-end">
                         <button
                           onClick={handleCommitForecast}
-                          className="flex items-center gap-2 bg-purple-600 text-white px-6 py-2.5 rounded-lg hover:bg-purple-700 shadow-sm transition-all active:scale-95"
+                          disabled={activePlan?.isLocked}
+                          className={`flex items-center gap-2 px-6 py-2.5 rounded-lg shadow-sm transition-all ${activePlan?.isLocked
+                            ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                            : 'bg-purple-600 text-white hover:bg-purple-700 active:scale-95'
+                            }`}
                         >
                           <Save size={18} />
-                          Commit to Plan
+                          {activePlan?.isLocked ? "Plan Locked" : "Commit to Plan"}
                         </button>
                       </div>
                     </div>

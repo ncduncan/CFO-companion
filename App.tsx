@@ -22,6 +22,7 @@ import { Dashboard } from './views/Dashboard';
 import { Forecast } from './views/Forecast';
 import { Settings } from './views/Settings';
 import { Improvement } from './views/Improvement';
+import { AnalystChat } from './views/AnalystChat';
 import { Reporting } from './views/Reporting';
 
 enum View {
@@ -29,6 +30,7 @@ enum View {
   BUDGET = 'Forecast',
   REPORTING = 'Reporting',
   IMPROVEMENT = 'Improvement Ops',
+  ANALYST = 'Gemini Analyst',
   SETTINGS = 'Settings'
 }
 
@@ -39,6 +41,12 @@ const App: React.FC = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string>("");
+  const [apiKey, setApiKey] = useState<string>(localStorage.getItem('GEMINI_API_KEY') || '');
+
+  const handleSetApiKey = (key: string) => {
+    setApiKey(key);
+    localStorage.setItem('GEMINI_API_KEY', key);
+  };
 
   // Initial Load - Check for stored handle
   useEffect(() => {
@@ -186,6 +194,7 @@ const App: React.FC = () => {
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           <NavItem view={View.DASHBOARD} icon={LayoutDashboard} />
           <NavItem view={View.BUDGET} icon={PieChart} />
+          <NavItem view={View.ANALYST} icon={TrendingUp} />
           <NavItem view={View.REPORTING} icon={BarChart3} />
           <NavItem view={View.IMPROVEMENT} icon={TrendingUp} />
           <div className="pt-4 mt-4 border-t border-slate-800">
@@ -198,7 +207,7 @@ const App: React.FC = () => {
             <div className={`w-2 h-2 rounded-full ${dirHandle ? 'bg-purple-500' : 'bg-amber-500'}`} />
             <span>{dirHandle ? 'Local Mode: Active' : 'Memory Only'}</span>
           </div>
-          <p>v2.4.0 Ind. SaaS</p>
+          <p>v2.5.0 Analyst Edition</p>
         </div>
       </aside>
 
@@ -235,6 +244,7 @@ const App: React.FC = () => {
           <div className="max-w-7xl mx-auto">
             {currentView === View.DASHBOARD && <Dashboard data={data} />}
             {currentView === View.BUDGET && <Forecast data={data} onUpdate={handleDataUpdate} />}
+            {currentView === View.ANALYST && <AnalystChat data={data} apiKey={apiKey} />}
             {currentView === View.REPORTING && <Reporting data={data} />}
             {currentView === View.IMPROVEMENT && <Improvement data={data} onUpdate={handleDataUpdate} />}
             {currentView === View.SETTINGS && (
@@ -244,6 +254,8 @@ const App: React.FC = () => {
                 onSelectFolder={handleSelectFolder}
                 folderName={dirHandle ? dirHandle.name : null}
                 onGenerateDemoData={generateDemoData}
+                apiKey={apiKey}
+                onSetApiKey={handleSetApiKey}
               />
             )}
           </div>

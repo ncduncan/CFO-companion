@@ -43,6 +43,13 @@ export interface Plan {
   endDate: string;   // YYYY-MM
   status: 'Draft' | 'Active' | 'Archived';
   created: string;
+
+  // New Fields for Scenarios & Workflow
+  type: 'Base' | 'Scenario' | 'Interim';
+  parentPlanId?: string; // If derived from another plan
+  isLocked: boolean;
+  lockDate?: string;
+  isWorkingPlan: boolean; // The default plan for analysis (single active)
 }
 
 export type ForecastMethodType =
