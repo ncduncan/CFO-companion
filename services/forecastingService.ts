@@ -136,3 +136,79 @@ export const generateForecast = (
         };
     });
 };
+
+/**
+ * Applies active Risks and Opportunities to the base forecast records.
+ * Returns a new array of records with the impacts added.
+ */
+export const applyRisksAndOps = (
+    baseRecords: FinancialRecord[],
+    data: AppData,
+    planId: string
+): FinancialRecord[] => {
+    // Filter for relevant items: Matches Plan ID + Included in Budget
+    const activeItems = data.opportunities.filter(
+        item => item.includedInBudget && item.planId === planId
+    );
+
+    // We strictly clone base records to avoid mutations
+    let currentRecords = [...baseRecords];
+
+    activeItems.forEach(item => {
+        const monthlyImpact = item.estimatedImpact / (item.durationMonths || 1);
+        const impactSign = item.type === 'Risk' ? -1 : 1;
+        const finalMonthlyAmount = monthlyImpact * impactSign;
+
+        // Calculate start and end indices/dates
+        const [startYear, startMonth] = (item.startDate || new Date().toISOString().slice(0, 7)).split('-').map(Number);
+
+        for (let i = 0; i < (item.durationMonths || 1); i++) {
+            // Determine date for this month
+            const d = new Date(startYear, startMonth - 1 + i, 1);
+            // Adjust for TZ/Month rollover
+            // Simple string construction is safer
+            // let's do simple math
+            // Year/Month logic
+            let y = startYear;
+            let m = startMonth + i;
+            while (m > 12) {
+                m -= 12;
+                y++;
+            }
+            const period = `${y}-${String(m).padStart(2, '0')}`;
+
+            if (!item.impactAccountCode) continue;
+
+            const existingIndex = currentRecords.findIndex(r =>
+                r.period === period &&
+                r.planId === planId &&
+                r.accountCode === item.impactAccountCode &&
+                r.costCenterCode === (item.impactCostCenterCode || '') &&
+                r.productLineCode === (item.impactProductLineCode || '')
+            );
+
+            if (existingIndex !== -1) {
+                // Modify existing
+                const existing = currentRecords[existingIndex];
+                currentRecords[existingIndex] = {
+                    ...existing,
+                    amount: existing.amount + finalMonthlyAmount
+                };
+            } else {
+                // Create new record
+                currentRecords.push({
+                    id: crypto.randomUUID(),
+                    planId: planId,
+                    period: period,
+                    type: RecordType.BUDGET,
+                    accountCode: item.impactAccountCode,
+                    costCenterCode: item.impactCostCenterCode || '',
+                    productLineCode: item.impactProductLineCode || '',
+                    amount: finalMonthlyAmount
+                });
+            }
+        }
+    });
+
+    return currentRecords;
+};

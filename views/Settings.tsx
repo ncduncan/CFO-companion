@@ -453,11 +453,20 @@ export const Settings: React.FC<SettingsProps> = ({ data, onUpdate, onSelectFold
           {onSetApiKey && (
             <Card title="AI Configuration">
               <div className="space-y-4">
+                <div className="bg-blue-50 text-blue-800 p-3 rounded text-xs border border-blue-100 mb-2">
+                  <strong>Tip:</strong> You can get a free API key from Google AI Studio.
+                  The "Gemini 2.0 Flash" model has a generous free tier.
+                  <br />
+                  <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="underline font-bold mt-1 inline-block">
+                    Get Free API Key &rarr;
+                  </a>
+                </div>
+
                 <p className="text-sm text-slate-600">
-                  Configure the Gemini API Key to enable the Analyst features.
+                  Configure the LLM API Key to enable the Analyst features.
                 </p>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Gemini API Key</label>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">AI API Key</label>
                   <input
                     type="password"
                     value={apiKey || ''}
@@ -465,7 +474,10 @@ export const Settings: React.FC<SettingsProps> = ({ data, onUpdate, onSelectFold
                     placeholder="AIzaSy..."
                     className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:ring-purple-500 focus:border-purple-500 outline-none"
                   />
-                  <p className="text-[10px] text-slate-400 mt-1">Key is stored in your browser's local storage.</p>
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    <span className="font-semibold text-slate-600">Security Note:</span> This key is stored ONLY in your browser's local storage.
+                    It is never saved to the shared workspace files, so your quota is safe from other users.
+                  </p>
                 </div>
               </div>
             </Card>

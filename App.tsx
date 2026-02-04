@@ -21,7 +21,7 @@ import { AppData, INITIAL_DATA } from './types';
 import { Dashboard } from './views/Dashboard';
 import { Forecast } from './views/Forecast';
 import { Settings } from './views/Settings';
-import { Improvement } from './views/Improvement';
+import { RiskOpportunityView } from './views/RiskOpportunity';
 import { AnalystChat } from './views/AnalystChat';
 import { Reporting } from './views/Reporting';
 
@@ -29,8 +29,8 @@ enum View {
   DASHBOARD = 'Dashboard',
   BUDGET = 'Forecast',
   REPORTING = 'Reporting',
-  IMPROVEMENT = 'Improvement Ops',
-  ANALYST = 'Gemini Analyst',
+  IMPROVEMENT = 'Risk & Opps',
+  ANALYST = 'AI Analyst',
   SETTINGS = 'Settings'
 }
 
@@ -246,7 +246,7 @@ const App: React.FC = () => {
             {currentView === View.BUDGET && <Forecast data={data} onUpdate={handleDataUpdate} />}
             {currentView === View.ANALYST && <AnalystChat data={data} apiKey={apiKey} />}
             {currentView === View.REPORTING && <Reporting data={data} />}
-            {currentView === View.IMPROVEMENT && <Improvement data={data} onUpdate={handleDataUpdate} />}
+            {currentView === View.IMPROVEMENT && <RiskOpportunityView data={data} onUpdate={handleDataUpdate} />}
             {currentView === View.SETTINGS && (
               <Settings
                 data={data}

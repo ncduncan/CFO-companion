@@ -81,7 +81,7 @@ export const AnalystChat: React.FC<AnalystChatProps> = ({ data, apiKey }) => {
                             <Sparkles size={20} />
                         </div>
                         <div>
-                            <h3 className="font-bold text-slate-800">Gemini Analyst</h3>
+                            <h3 className="font-bold text-slate-800">AI Financial Analyst</h3>
                             <p className="text-xs text-slate-500">Expert Agent • Working Plan Context</p>
                         </div>
                     </div>
@@ -107,8 +107,8 @@ export const AnalystChat: React.FC<AnalystChatProps> = ({ data, apiKey }) => {
 
                             <div
                                 className={`max-w-[80%] rounded-2xl px-5 py-3 text-sm leading-relaxed shadow-sm ${msg.role === 'user'
-                                        ? 'bg-purple-600 text-white rounded-tr-none'
-                                        : 'bg-white text-slate-700 border border-slate-100 rounded-tl-none'
+                                    ? 'bg-purple-600 text-white rounded-tr-none'
+                                    : 'bg-white text-slate-700 border border-slate-100 rounded-tl-none'
                                     }`}
                             >
                                 {msg.role === 'assistant' ? (

@@ -10,7 +10,7 @@ import {
 } from '../types';
 import { SAAS_CATEGORIES } from '../services/financialModel';
 import { PROD_LINES, COST_CENTERS } from '../services/dataFactory';
-import { generateForecast } from '../services/forecastingService';
+import { generateForecast, applyRisksAndOps } from '../services/forecastingService';
 import { Card } from '../components/ui/Card';
 import {
   Plus,
@@ -299,8 +299,15 @@ export const Forecast: React.FC<ForecastProps> = ({ data, onUpdate }) => {
     // Forecast (Active Plan)
     const planMap = new Map<string, number>();
     if (activePlanId) {
-      data.records
-        .filter(r => r.planId === activePlanId && filterRecord(r))
+      // 1. Get Base Plan Records
+      const basePlanRecords = data.records.filter(r => r.planId === activePlanId);
+
+      // 2. Apply Risks & Ops Overlay
+      const adjustedRecords = applyRisksAndOps(basePlanRecords, data, activePlanId);
+
+      // 3. Filter & Aggregate
+      adjustedRecords
+        .filter(r => filterRecord(r))
         .forEach(r => {
           planMap.set(r.period, (planMap.get(r.period) || 0) + r.amount);
         });

@@ -71,7 +71,7 @@ export const sendMessageToGemini = async (
 
     const SYSTEM_PROMPT = `
     You are an expert FP&A Analyst for a $100M SaaS Company.
-    Your Name is "Gemini".
+    Your Name is "CFO Companion".
     
     ROLE:
     - You go deep into details but provide simple, executive-level summaries.

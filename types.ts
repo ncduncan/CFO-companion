@@ -29,7 +29,7 @@ export interface AppData {
   costCenters: DimensionMapping[];
   productLines: DimensionMapping[];
   records: FinancialRecord[];
-  opportunities: ImprovementOpportunity[];
+  opportunities: RiskOpportunity[];
   lastModified: string;
   plans: Plan[];
   assumptions: ForecastAssumption[];
@@ -84,16 +84,25 @@ export interface ForecastAssumption {
   backtestAccuracy?: number; // 0-100 score based on historical fit
 }
 
-export interface ImprovementOpportunity {
+export interface RiskOpportunity {
   id: string;
+  planId: string; // Linked to a specific Plan
   title: string;
   description: string;
-  estimatedImpact: number;
+  type: 'Risk' | 'Opportunity';
+  estimatedImpact: number; // Total impact over duration
   status: 'Identified' | 'In Progress' | 'Completed' | 'Discarded';
   owner: string;
   includedInBudget: boolean;
-  estimatedImpactTiming: string;
+
+  // Timing Logic
+  startDate: string; // YYYY-MM
+  durationMonths: number; // e.g., 12
+
+  // Optional Legacy / Descriptive
+  estimatedImpactTiming?: string; // e.g. "Q3 Ramp" (Text)
   actionDueDate: string; // YYYY-MM-DD
+
   impactAccountCode?: string; // Link to P&L Line
   impactProductLineCode?: string; // Link to Product Line (Mutually exclusive with Cost Center)
   impactCostCenterCode?: string; // Link to Cost Center (Mutually exclusive with Product Line)
